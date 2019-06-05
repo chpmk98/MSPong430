@@ -84,7 +84,7 @@ int io_puts_no_newline(const char *str) {
 #define MAX_X 500
 #define MAX_Y 500
 #define PADDLESPEED 20
-#define PADDLEWIDTH 50
+#define PADDLEWIDTH 100
 #define PADDLEHEIGHT 20
 struct Sprite {
     float px;
@@ -141,8 +141,8 @@ void gameRules(){
             float newvx = ball.vx;
             float newvy = ball.vy;
             //your speed will be altered based on your risk
-            newvx *= (0.8 + 2 * risk * risk);
-            newvy *= (0.8 + 2 * risk * risk);
+            newvx *= (0.8 +  risk * risk);
+            newvy *= (0.8 +  risk * risk);
             ball.vx = newvx;
             ball.vy = newvy;
             //don't let vx or vy get too slow or too fast
@@ -152,12 +152,12 @@ void gameRules(){
                 ball.vy = -19;
             if(ball.vx < 0 && ball.vx > -5)
                 ball.vx = -5;
-            if(ball.vx < 0 && ball.vx < -19)
-                ball.vx = -19;
+            if(ball.vx < 0 && ball.vx < -15)
+                ball.vx = -15;
             if(ball.vx > 0 && ball.vx > 5)
                 ball.vx = 5;
-            if(ball.vx > 0 && ball.vx < 19)
-                ball.vx = 19;
+            if(ball.vx > 0 && ball.vx < 15)
+                ball.vx = 15;
         }
     }
 }
