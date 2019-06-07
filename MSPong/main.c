@@ -97,10 +97,10 @@ struct Sprite {
 
 struct Sprite paddle;
 struct Sprite ball;
-uint32_t hasBall; // do you have the ball?
-uint32_t ballIsLive; //is the ball moving?
-int myScore;
-int theirScore;
+uint16_t hasBall; // do you have the ball?
+uint16_t ballIsLive; //is the ball moving?
+uint16_t myScore;
+uint16_t theirScore;
 
 // radio vars
 uint8_t addr[5];
@@ -114,7 +114,7 @@ struct bufStruct {
     float vy;
     uint32_t hasBall;
 };
-struct bufStruct* bufBoi = buf;
+struct bufStruct* bufBoi = (struct bufStruct*) buf;
 
 void initGame(){
     paddle.px = MAX_X / 2;
@@ -222,6 +222,10 @@ void gameRules(){
             hasBall = 0;
         }
         if(ball.py > MAX_Y){
+            theirScore++;
+            //printf("%u \r\n", theirScore);
+            //__delay_cycles(800000);
+
             // if the ball hit the bottom of the screen, increment score
             // and send a transmission. start again with the ball.
             msprf24_powerdown();
@@ -231,7 +235,6 @@ void gameRules(){
             msprf24_standby();
             w_tx_addr(addr);
             w_rx_addr(0, addr);
-            theirScore++;
             bufBoi->myScore = theirScore;
             bufBoi->theirScore = myScore;
             bufBoi->hasBall = 0;
@@ -264,9 +267,9 @@ void gameRules(){
                     }
                 }
             }
-
-            initGame();
-            CEINT |= CEIE;  // enable interrupts again
+            ballIsLive = 0;
+            ball.py = MAX_Y/4;
+            ball.px = MAX_X/2;
         }
     }
 
@@ -489,10 +492,9 @@ void main(void)
         checkKeyPress();
         gameRules();
 
-        printf("%u %u %u %u %u %u %u\r\n", (int)paddle.px, (int)paddle.py, (int)ball.px, (int)ball.py,hasBall, myScore, theirScore);
+        printf("%u %u %u %u %u %u %u \r\n", (int)paddle.px, (int)paddle.py, (int)ball.px, (int)ball.py, hasBall, myScore, theirScore);
         // Put the MSP430 into LPM3 for a certain DELAY period
         sleep(DELAY);
-
     }
 } // End Main
 
@@ -512,7 +514,7 @@ __interrupt void startGame(void){
     CEINT &= ~CEIFG; //reset interrupt flag
     CEINT &= ~CEIE;  // disable interrupts from now on
     hasBall = 1;
-    ball.vx = -5 + rand() % (10+1);
+    ball.vx = -5;
     ball.vy = 5;
 }
 /*
