@@ -34,6 +34,8 @@
 #include <msp430.h>
 #include <string.h>
 #include "CTS_Layer.h"
+#include "msprf24.h"
+#include "nrf_userconfig.h"
 
 //******************************************************************************
 //UART printf definitions
@@ -128,7 +130,7 @@ void gameRules(){
             ball.px = MAX_X;
             ball.vx = -ball.vx;
         }
-        if(ball.py < 0){
+        if(ball.py <= 0){
             // once the ball reaches the top of the screen,
             // send a packet
             msprf24_powerdown();
@@ -143,22 +145,35 @@ void gameRules(){
             bufInt[0] = MAX_X - ball.px;
             bufInt[1] = -ball.py;
             bufInt[2] = -ball.vx;
-            bufInt[3] = -ball.yx;
+            bufInt[3] = -ball.vy;
             w_tx_payload(32, buf);
             msprf24_activate_tx();
 
-            // then switch back to RX mode to listen for when the ball
-            // returns
-            msprf24_irq_clear(rf_irq);
-            msprf24_powerdown();
-            msprf24_init();  // All RX pipes closed by default
-            msprf24_set_pipe_packetsize(0, 32);
-            msprf24_open_pipe(0, 0);
-            msprf24_standby();
+            while(1) {
+                // see if the radio is intruiged
+                if (rf_irq & RF24_IRQ_FLAGGED) {
+                    msprf24_get_irq_reason();
+                    // if we sent a thing, swich to receiving
+                    if (rf_irq & RF24_IRQ_TX) {
+                        // then switch back to RX mode to listen for when the ball
+                        // returns
+                        msprf24_irq_clear(rf_irq);
+                        msprf24_powerdown();
+                        msprf24_init();  // All RX pipes closed by default
+                        msprf24_set_pipe_packetsize(0, 32);
+                        msprf24_open_pipe(0, 0);
+                        msprf24_standby();
 
-            w_tx_addr(addr);
-            w_rx_addr(0, addr);
-            msprf24_activate_rx();
+                        w_tx_addr(addr);
+                        w_rx_addr(0, addr);
+                        msprf24_activate_rx();
+
+                        break;
+                    } else {
+                        msprf24_irq_clear(rf_irq);
+                    }
+                }
+            }
 
             // note that we no longer have the ball
             hasBall = 0;
@@ -171,7 +186,7 @@ void gameRules(){
 
     // if the ball is live and we don't have it,
     // listen until we get it
-    if(ballIsLive && !hasBall) {
+    if(!hasBall) {
         // see if the radio is intruiged
         if (rf_irq & RF24_IRQ_FLAGGED) {
             msprf24_get_irq_reason();
@@ -187,6 +202,7 @@ void gameRules(){
                 msprf24_irq_clear(rf_irq);
 
                 // now we have the ball
+                ballIsLive = 1;
                 hasBall = 1;
             } else {
                 // otherwise, it's not important
@@ -376,7 +392,7 @@ void main(void)
     initCaptouch();
 
     // radio stuff
-    user = 0xFE;
+    //user = 0xFE;
 
     /* Initial values for nRF24L01+ library config variables */
     rf_crc = RF24_EN_CRC | RF24_CRCO; // CRC enabled, 16-bit
@@ -390,7 +406,7 @@ void main(void)
 
     // some transmission stuff
     msprf24_standby();
-    user = msprf24_current_state();
+    //user = msprf24_current_state();
 
     // Set our RX address
     addr[0] = 0xBA; addr[1] = 0xDB; addr[2] = 0xED; addr[3] = 0xFA; addr[4] = 0xCE;
