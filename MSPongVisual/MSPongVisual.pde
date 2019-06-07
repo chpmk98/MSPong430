@@ -23,7 +23,7 @@ void setup() {
   myString = myPort.readStringUntil(lf);
   myString = null;
   size(500,500);
-  textSize(50);
+  textSize(40);
 }
 
 void draw() {
@@ -32,7 +32,7 @@ void draw() {
     if (myString != null) {
       println(myString);
       int [] data = int(split(myString,' '));
-      if(data.length < 5){
+      if(data.length < 7){
         continue;
       }
       paddlex = data[0];
@@ -44,7 +44,7 @@ void draw() {
       theirScore = data[6];
       background(51);
       rect(paddlex-100,paddley-10,200,20);
-      text("%d : %d", 10, 30);
+      text(str(myScore) + " : " + str(theirScore), 30, 50);
       if(hasBall == 1){
         circle(ballx,bally,10);
       }
