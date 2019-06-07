@@ -9,12 +9,14 @@ int paddley;
 int ballx;
 int bally;
 int hasBall;
+int myScore;
+int theirScore;
 
 void setup() {
   // List all the available serial ports
   printArray(Serial.list());
   // Open the port you are using at the rate you want:
-  myPort = new Serial(this, "COM12", 9600*2);
+  myPort = new Serial(this, "/dev/tty.usbmodem14103", 9600*2);
   myPort.clear();
   // Throw out the first reading, in case we started reading 
   // in the middle of a string from the sender.
@@ -38,10 +40,14 @@ void draw() {
       ballx = data[2];
       bally = data[3];
       hasBall = data[4];
+      myScore = data[5];
+      theirScore = data[6];
       background(51);
-      rect(paddlex-25,paddley-10,50,20);
-      circle(ballx,bally,10);
-      
+      rect(paddlex-100,paddley-10,200,20);
+      text("%d : %d", 10, 30);
+      if(hasBall == 1){
+        circle(ballx,bally,10);
+      }
     }
   }
 }
